@@ -68,12 +68,20 @@ if uploaded_file:
             if match:
                 client_name = match.group(1).strip()
                 client_name = client_name[::-1]
-
-
         if "Member Of" in line:
             parts = line.split(":")
             if len(parts) > 1:
-                insurance_company = parts[1].strip()
+                after_text = parts[1].strip()
+                words = after_text.split()
+
+                if words and words[0].lower() == "claim":
+                    insurance_company = "صندوق تحسين أحوال العاملين بالجامعات الحكومية - العاملين بجامعة أسيوط"
+                elif "Claim" in words:
+                    claim_index = words.index("Claim")
+                    insurance_company = " ".join(words[:claim_index])
+                    insurance_company = insurance_company[::-1]
+                else:
+                    insurance_company = after_text
         if "Dispensed Date" in line:
             match = re.search(r"Dispensed Date\s*:\s*(\d{2}/\d{2}/\d{4})", line)
             if match:
@@ -153,7 +161,7 @@ if uploaded_file:
             reshaped_name = reshape_arabic(client_name)
             reshaped_label = reshape_arabic("اسم العميل: ")
             pdf.cell(0, 10,reshaped_name + reshaped_label , ln=1, align="R")
-            pdf.cell(0, 10, reshape_arabic("شركة التأمين: صندوق تحسين احوال العاملين بالجامعات الحكومية"), ln=1, align="R")
+            pdf.cell(0, 10, reshape_arabic("شركة التأمين: " + insurance_company), ln=1, align="R")
             pdf.cell(0, 10, reshape_arabic("التاريخ: " + dispensed_date), ln=1, align="R")
             pdf.ln(5)
 
