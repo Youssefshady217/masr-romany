@@ -142,7 +142,7 @@ if uploaded_file:
                     self.cell(0, 10, reshape_arabic("م.ض: 01-40-181-00591-5"), ln=1, align="C")
                     self.cell(0, 10, reshape_arabic("س.ت: 94294"), ln=1, align="C")
                     self.set_font("Amiri", "", 10)
-                    self.cell(0, 10, reshape_arabic("العنوان: اسيوط - الفتح - عزبه التحرير - شارع رقم ١), ln=1, align="C")
+                    self.cell(0, 10, reshape_arabic("العنوان: اسيوط - الفتح - عزبه التحرير - شارع رقم ١"), ln=1, align="C")
                     self.cell(0, 10, reshape_arabic("تليفون: 01557000365"), ln=1, align="C")
                     self.ln(5)
 
