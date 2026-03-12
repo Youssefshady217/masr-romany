@@ -10,7 +10,7 @@ def reshape_arabic(text):
     return get_display(arabic_reshaper.reshape(str(text)))
 
 VALID_USERNAME = "romany"
-VALID_PASSWORD = "5678"
+VALID_PASSWORD = "1234"
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -54,6 +54,7 @@ if uploaded_file:
             for table in tables:
                 for row in table:
                     table_data.append(row)
+                    
 
     # استخراج البيانات الأساسية
     client_name = ""
@@ -68,6 +69,8 @@ if uploaded_file:
             if match:
                 client_name = match.group(1).strip()
                 client_name = client_name[::-1]
+
+
         if "Member Of" in line:
             parts = line.split(":")
             if len(parts) > 1:
@@ -82,12 +85,15 @@ if uploaded_file:
                     insurance_company = insurance_company[::-1]
                 else:
                     insurance_company = after_text
+
         if "Dispensed Date" in line:
             match = re.search(r"Dispensed Date\s*:\s*(\d{2}/\d{2}/\d{4})", line)
             if match:
                 dispensed_date = match.group(1)
 
     df = pd.DataFrame(table_data)
+    
+
 
     # محاولة تحديد رأس الجدول
     header_row_index = None
@@ -100,16 +106,22 @@ if uploaded_file:
         df.columns = df.iloc[header_row_index]
         df = df.drop(index=range(0, header_row_index + 1)).reset_index(drop=True)
         df = df[df["Status"].str.contains("Approved", na=False)]
-        df["Dis."] = pd.to_numeric(df["Dis."], errors="coerce")
-        df["Cop."] = pd.to_numeric(df["Cop."], errors="coerce")
-        df["Net"] = pd.to_numeric(df["Net"], errors="coerce")
+        df = df.fillna("")
+        
+        df["Dis."] = df["Dis."].astype(str).str.replace("\n","").str.strip()
+        df["Cop."] = df["Cop."].astype(str).str.replace("\n","").str.strip()
+        df["Net"] = df["Net"].astype(str).str.replace("\n","").str.strip()
+        
 
         df["اسم الصنف"] = df["Name"]
         df["الكمية"] = df["Qty"]
         df["سعر الوحدة"] = df["Unit"]
+        df[["Dis.","Cop.","Net"]] = df[["Dis.","Cop.","Net"]].apply(pd.to_numeric, errors="coerce")
         df["سعر الكمية"] = (df["Dis."] + df["Cop."] + df["Net"]).round(2)
 
         final_df = df[["اسم الصنف", "الكمية", "سعر الوحدة", "سعر الكمية"]]
+        
+
 
         st.success(f"✅ تم استخراج {len(final_df)} صنف معتمد")
         edited_df = st.data_editor(final_df, num_rows="dynamic", use_container_width=True)
@@ -121,12 +133,7 @@ if uploaded_file:
         output.seek(0)
 
 
-        st.download_button(
-            label="⬇️ تحميل Excel",
-            data=output,
-            file_name="approved_meds.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+        
 
         # توليد PDF
         if st.button("📄 توليد إيصال PDF"):
@@ -137,13 +144,13 @@ if uploaded_file:
                     self.set_fill_color(230, 230, 230)
                     self.image("logo.png", x=10, y=8, w=20)
                     self.set_font("Amiri", "B", 14)
-                    self.cell(0, 10, reshape_arabic("صيدلية د/ روماني عاطف يوسف"), ln=1, align="C")
+                    self.cell(0, 10, reshape_arabic("صيدلية د/ نادر نبيل فهمي"), ln=1, align="C")
                     self.set_font("Amiri", "", 11)
                     self.cell(0, 10, reshape_arabic("م.ض: 01-40-181-00591-5"), ln=1, align="C")
                     self.cell(0, 10, reshape_arabic("س.ت: 94294"), ln=1, align="C")
                     self.set_font("Amiri", "", 10)
-                    self.cell(0, 10, reshape_arabic("العنوان: اسيوط - الفتح - عزبه التحرير - شارع رقم ١"), ln=1, align="C")
-                    self.cell(0, 10, reshape_arabic("تليفون: 01557000365"), ln=1, align="C")
+                    self.cell(0, 10, reshape_arabic("العنوان: اسيوط - شركة فريال - شارع الامام علي"), ln=1, align="C")
+                    self.cell(0, 10, reshape_arabic("تليفون: 01211136366"), ln=1, align="C")
                     self.ln(5)
 
                 def footer(self):
@@ -212,3 +219,4 @@ if uploaded_file:
 
     else:
         st.error("❌ لم يتم العثور على جدول يحتوي على عمود 'Qty'.")
+
